@@ -132,6 +132,30 @@ void Timer_A1_Periodic_Task(void){
 }
 int main(void)
 {
+    // Ensure that interrupts are disabled during initialization
+    DisableInterrupts();
+
+    // Initialize the clock
+    Clock_Init48MHz();
+
+    // Initialize the built-in red LED and the RGB LED on the microcontroller
+    LED1_Init();
+    LED2_Init();
+
+    // Initialize the EUSCI_A0_UART module
+    EUSCI_A0_UART_Init_Printf();
+
+    // Initialize the 8-Channel QTRX Reflectance Sensor Array module
+    Reflectance_Sensory_Init();
+
+    // Initialize the SysTick timer
+    SysTick_Interrupt_Init(SYSTICK_INT_NUM_CLK_CYCLES, SYSTICK_INT_PRIORITY);
+
+    // Initialize the Timer A1 periodic interrupts every 1 ms
+    Timer_A1_Interrupt_Init(&Timer_A1_Periodic_Task, TIMER_A1_INT_CCR0_VALUE);
+
+    // Enable the interrupts used by the modules
+    EnableInterrupts();
 
     while(1)
     {

@@ -37,6 +37,7 @@ policies, either expressed or implied, of the FreeBSD Project.
  */
 
 #include <stdint.h>
+#include "msp.h"
 #include "../inc/CortexM.h"
 
 //*********** DisableInterrupts ***************
@@ -60,10 +61,10 @@ void EnableInterrupts(void){
 // make a copy of previous I bit, disable interrupts
 // inputs:  none
 // outputs: previous I bit
-void StartCritical(void){
-  __asm  ("    MRS    R0, PRIMASK   ; save old status \n"
-          "    CPSID  I             ; mask all (except faults)\n"
-          "    BX     LR\n");
+long StartCritical(void){
+  uint32_t status = __get_PRIMASK();
+  __disable_irq();
+  return (long)status;
 }
 
 //*********** EndCritical ************************

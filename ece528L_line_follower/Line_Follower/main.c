@@ -28,11 +28,11 @@
 #include "inc/EUSCI_A0_UART.h"
 #include "inc/Motor.h"
 #include "inc/Timer_A1_Interrupt.h"
-#include "inc/Systick_Interrupt.h"
+#include "inc/SysTick_Interrupt.h"
 #include "inc/Reflectance_Sensor.h"
 
 // Initializing constant PWM duty cycle values for the motors
-#define PWM_NOMIAL 2500
+#define PWM_NOMINAL 2500
 
 // Initialize a global variable for Timer A1 to keep track of elapsed time in milliseconds
 static uint32_t Timer_A1_ms_elapsed = 0;
@@ -65,42 +65,49 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
         LED2_Output(RGB_LED_YELLOW);
     }
     break;
+
     case SLIGHT_RIGHT_CENTER:
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_PINK);
     }
     break;
+
     case FAR_LEFT:
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_WHITE);
     }
     break;
+
     case FAR_RIGHT:
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_SKY_BLUE);
     }
     break;
+
     case LEFT_TURN:
     {
         LED1_Output(RED_LED_ON);
         LED2_Output(RGB_LED_WHITE);
     }
     break;
+
     case RIGHT_TURN:
     {
         LED1_Output(RED_LED_ON);
         LED2_Output(RGB_LED_SKY_BLUE);
     }
     break;
+
     case T_INTERSECTION:
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_BLUE);
     }
     break;
+
     case DEAD_END:
     {
         LED1_Output(RED_LED_OFF);
@@ -109,10 +116,11 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     break;
 
     default:
+    {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_OFF);
-        break;
     }
+}
 }
 
 void Timer_A1_Periodic_Task(void){
@@ -128,6 +136,7 @@ void Timer_A1_Periodic_Task(void){
     if ((Timer_A1_ms_elapsed % 10) == 1) {
         uint8_t Reflectance_Sensor_Data = Reflectance_Sensor_End();
         Detect_Line_Position(Reflectance_Sensor_Data);
+        Timer_A1_ms_elapsed = 0;
     }
 }
 int main(void)
@@ -146,7 +155,7 @@ int main(void)
     EUSCI_A0_UART_Init_Printf();
 
     // Initialize the 8-Channel QTRX Reflectance Sensor Array module
-    Reflectance_Sensory_Init();
+    Reflectance_Sensor_Init();
 
     // Initialize the SysTick timer
     SysTick_Interrupt_Init(SYSTICK_INT_NUM_CLK_CYCLES, SYSTICK_INT_PRIORITY);

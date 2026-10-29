@@ -36,6 +36,7 @@
 
 // Initialize a global variable for Timer A1 to keep track of elapsed time in milliseconds
 static uint32_t Timer_A1_ms_elapsed = 0;
+static volatile uint32_t system_ms = 0;
 
 typedef enum{
     CENTER              = 0b00011000,
@@ -56,6 +57,8 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_GREEN);
+        Motor_Right(7500, 7500);
+        Clock_Delay1ms(2000);
     }
     break;
 
@@ -84,6 +87,8 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_SKY_BLUE);
+        Motor_Left(7500, 7500);
+        Clock_Delay1ms(2000);
     }
     break;
 
@@ -98,6 +103,8 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_ON);
         LED2_Output(RGB_LED_SKY_BLUE);
+        Motor_Right(7500, 7500);
+        Clock_Delay1ms(2000);
     }
     break;
 
@@ -105,6 +112,8 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_BLUE);
+        Motor_Stop();
+        Clock_Delay1ms(2000);
     }
     break;
 
@@ -112,6 +121,8 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_RED);
+        Motor_Stop();
+        Clock_Delay1ms(2000);
     }
     break;
 
@@ -119,9 +130,12 @@ void Detect_Line_Position(uint8_t reflectance_sensor_data)
     {
         LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_OFF);
+        Motor_Stop();
+        Clock_Delay1ms(2000);
     }
 }
 }
+
 
 void Timer_A1_Periodic_Task(void){
     // Increment Time_A1_ms_elapsed by 1 every time the Timer A1 periodic interrupt occurs
@@ -139,6 +153,13 @@ void Timer_A1_Periodic_Task(void){
         Timer_A1_ms_elapsed = 0;
     }
 }
+
+/** @brief Maintain milliseconds for nonblocking controller deadlines. */
+void SysTick_Handler(void)
+{
+    system_ms++;
+}
+
 int main(void)
 {
     // Ensure that interrupts are disabled during initialization
@@ -160,8 +181,15 @@ int main(void)
     // Initialize the SysTick timer
     SysTick_Interrupt_Init(SYSTICK_INT_NUM_CLK_CYCLES, SYSTICK_INT_PRIORITY);
 
+    /** @brief Maintain milliseconds for nonblocking controller deadlines. */
+    SysTick_Handler();
+
     // Initialize the Timer A1 periodic interrupts every 1 ms
     Timer_A1_Interrupt_Init(&Timer_A1_Periodic_Task, TIMER_A1_INT_CCR0_VALUE);
+
+    // Initializing the motors
+    Motor_Init();
+    Motor_Stop();
 
     // Enable the interrupts used by the modules
     EnableInterrupts();

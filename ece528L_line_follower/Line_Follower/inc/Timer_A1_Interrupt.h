@@ -24,7 +24,7 @@
 //#define TIMER_A1_INT_CCR0_VALUE 6000
 
 // Declare pointer to the user-defined function
-void (*Timer_A1_Task)(void);
+extern void (*Timer_A1_Task)(void);
 
 /**
  * @brief Initialize Timer A1 for periodic interrupt generation.

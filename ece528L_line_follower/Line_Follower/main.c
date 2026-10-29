@@ -32,130 +32,87 @@
 #include "inc/Reflectance_Sensor.h"
 
 // Initializing constant PWM duty cycle values for the motors
-#define PWM_NOMINAL 2500
+#define PWM_NOMINAL 2500U
 #define PWM_SLOW 1500U
 
 // Initialize a global variable for Timer A1 to keep track of elapsed time in milliseconds
 static uint32_t Timer_A1_ms_elapsed = 0;
 static volatile uint32_t system_ms = 0;
 
-typedef enum{
-    CENTER              = 0b00011000,
-    SLIGHT_LEFT_CENTER  = 0b00011100,
-    SLIGHT_RIGHT_CENTER = 0b00111000,
-    FAR_LEFT            = 0b00000001,
-    FAR_RIGHT           = 0b10000000,
-    LEFT_TURN           = 0b11111000,
-    RIGHT_TURN          = 0B00011111,
-    T_INTERSECTION      = 0b11111111,
-    DEAD_END            = 0b00000000
+// Bit 0 is the rightmost sensor; bit 7 is the leftmost sensor.
+typedef enum {
+    CENTER              = 0x18,
+    SLIGHT_LEFT_CENTER  = 0x38,
+    SLIGHT_RIGHT_CENTER = 0x1C,
+    FAR_LEFT            = 0x80,
+    FAR_RIGHT           = 0x01,
+    LEFT_TURN           = 0xF8,
+    RIGHT_TURN          = 0x1F,
+    T_INTERSECTION      = 0xFF,
+    DEAD_END            = 0x00
 } Line_Position;
+
+static void Follow_Line(uint8_t data);
 
 void Detect_Line_Position(uint8_t reflectance_sensor_data)
 {
-    switch(reflectance_sensor_data){
+    LED1_Output(RED_LED_OFF);
+    switch (reflectance_sensor_data) {
     case CENTER:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_GREEN);
-        Motor_Right(7500, 7500);
-        Clock_Delay1ms(2000);
-    }
-    break;
-
+        break;
     case SLIGHT_LEFT_CENTER:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_YELLOW);
-    }
-    break;
-
+        break;
     case SLIGHT_RIGHT_CENTER:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_PINK);
-    }
-    break;
-
+        break;
     case FAR_LEFT:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_WHITE);
-    }
-    break;
-
+        break;
     case FAR_RIGHT:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_SKY_BLUE);
-        Motor_Left(7500, 7500);
-        Clock_Delay1ms(2000);
-    }
-    break;
-
+        break;
     case LEFT_TURN:
-    {
         LED1_Output(RED_LED_ON);
         LED2_Output(RGB_LED_WHITE);
-    }
-    break;
-
+        Motor_Left(PWM_NOMINAL, PWM_NOMINAL);
+        return;
     case RIGHT_TURN:
-    {
         LED1_Output(RED_LED_ON);
         LED2_Output(RGB_LED_SKY_BLUE);
-        Motor_Right(7500, 7500);
-        Clock_Delay1ms(2000);
-    }
-    break;
-
+        Motor_Right(PWM_NOMINAL, PWM_NOMINAL);
+        return;
     case T_INTERSECTION:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_BLUE);
         Motor_Stop();
-        Clock_Delay1ms(2000);
-    }
-    break;
-
+        return;
     case DEAD_END:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_RED);
         Motor_Stop();
-        Clock_Delay1ms(2000);
-    }
-    break;
-
+        return;
     default:
-    {
-        LED1_Output(RED_LED_OFF);
         LED2_Output(RGB_LED_OFF);
-        Motor_Stop();
-        Clock_Delay1ms(2000);
+        break;
     }
-}
+
+    Follow_Line(reflectance_sensor_data);
 }
 
-
-void Timer_A1_Periodic_Task(void){
-    // Increment Time_A1_ms_elapsed by 1 every time the Timer A1 periodic interrupt occurs
+void Timer_A1_Periodic_Task(void)
+{
+    // Start at 10, 20, 30, ... ms and finish one tick later.
     Timer_A1_ms_elapsed++;
-
-    // Start the process of reading the reflectance sensor array every 10 ms (i.e. 10, 20, 30, ...)
-    if ((Timer_A1_ms_elapsed % 10) == 0) {
+    if (Timer_A1_ms_elapsed == 10U) {
         Reflectance_Sensor_Start();
-    }
-
-    // Finish reading the reflectance sensor array after 1 ms (i.e. 11, 21, 31, ..)
-    if ((Timer_A1_ms_elapsed % 10) == 1) {
-        uint8_t Reflectance_Sensor_Data = Reflectance_Sensor_End();
-        Detect_Line_Position(Reflectance_Sensor_Data);
-        Timer_A1_ms_elapsed = 0;
+    } else if (Timer_A1_ms_elapsed == 11U) {
+        uint8_t data = Reflectance_Sensor_End();
+        Timer_A1_ms_elapsed = 1U;
+        Detect_Line_Position(data);
     }
 }
 
-// Maintain milliseconds for nonblocking controller deadlines. */
+// Maintain elapsed milliseconds.
 void SysTick_Handler(void)
 {
     system_ms++;
@@ -216,18 +173,12 @@ int main(void)
     // Initialize the SysTick timer
     SysTick_Interrupt_Init(SYSTICK_INT_NUM_CLK_CYCLES, SYSTICK_INT_PRIORITY);
 
-    // Maintain milliseconds for nonblocking controller deadlines
-    SysTick_Handler();
-
     // Initialize the Timer A1 periodic interrupts every 1 ms
     Timer_A1_Interrupt_Init(&Timer_A1_Periodic_Task, TIMER_A1_INT_CCR0_VALUE);
 
     // Initializing the motors
     Motor_Init();
     Motor_Stop();
-
-    // Helper function
-//    Follow_Line(uint8_t data);
 
     // Enable the interrupts used by the modules
     EnableInterrupts();

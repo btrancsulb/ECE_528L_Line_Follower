@@ -96,4 +96,6 @@ void Motor_Right(uint16_t left_duty_cycle, uint16_t right_duty_cycle);
  */
 void Motor_Stop();
 
+static void Follow_Line(uint8_t data);
+
 #endif /* INC_MOTOR_H_ */

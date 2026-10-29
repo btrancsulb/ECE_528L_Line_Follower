@@ -33,6 +33,7 @@
 
 // Initializing constant PWM duty cycle values for the motors
 #define PWM_NOMINAL 2500
+#define PWM_SLOW 1500U
 
 // Initialize a global variable for Timer A1 to keep track of elapsed time in milliseconds
 static uint32_t Timer_A1_ms_elapsed = 0;
@@ -154,10 +155,44 @@ void Timer_A1_Periodic_Task(void){
     }
 }
 
-/** @brief Maintain milliseconds for nonblocking controller deadlines. */
+// Maintain milliseconds for nonblocking controller deadlines. */
 void SysTick_Handler(void)
 {
     system_ms++;
+}
+
+// For steering along an ordinary line segment using weighted position. Junction/dead-end recognition must run before calling this helper.
+static void Follow_Line(uint8_t data)
+{
+    int32_t position;
+
+    if (data == 0U)
+    {
+        Motor_Stop();
+        return;
+    }
+
+    position = Reflectance_Sensor_Position(data);
+    if (position >= 332)
+    {
+        Motor_Right(PWM_NOMINAL, PWM_NOMINAL);
+    }
+    else if (position <= -332)
+    {
+        Motor_Left(PWM_NOMINAL, PWM_NOMINAL);
+    }
+    else if (position >= 47)
+    {
+        Motor_Forward(PWM_NOMINAL, PWM_SLOW);
+    }
+    else if (position <= -47)
+    {
+        Motor_Forward(PWM_SLOW, PWM_NOMINAL);
+    }
+    else
+    {
+        Motor_Forward(PWM_NOMINAL, PWM_NOMINAL);
+    }
 }
 
 int main(void)
@@ -181,7 +216,7 @@ int main(void)
     // Initialize the SysTick timer
     SysTick_Interrupt_Init(SYSTICK_INT_NUM_CLK_CYCLES, SYSTICK_INT_PRIORITY);
 
-    /** @brief Maintain milliseconds for nonblocking controller deadlines. */
+    // Maintain milliseconds for nonblocking controller deadlines
     SysTick_Handler();
 
     // Initialize the Timer A1 periodic interrupts every 1 ms
@@ -190,6 +225,9 @@ int main(void)
     // Initializing the motors
     Motor_Init();
     Motor_Stop();
+
+    // Helper function
+//    Follow_Line(uint8_t data);
 
     // Enable the interrupts used by the modules
     EnableInterrupts();

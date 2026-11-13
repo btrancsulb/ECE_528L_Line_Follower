@@ -52,7 +52,7 @@ The tables and timing diagrams below come from the flashed firmware and from pla
 
 The clip shows the TI-RSLK MAX following 3/4" black tape: it drives forward on center, corrects when the array drifts, and stops when the line ends.
 
-Open [demo.html](demo.html) in a browser to play the video inline. The file is H.264 MP4, so Chrome, Edge, and Firefox can play it without extra software.
+Open https://youtube.com/shorts/wWieut-omhQ?feature=share in a browser to play the video.
 
 <video src="media/IMG_3958.mp4" controls playsinline width="406">
   <a href="media/IMG_3958.mp4">Download IMG_3958.mp4</a>

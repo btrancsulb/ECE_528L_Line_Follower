@@ -21,11 +21,11 @@ void EUSCI_A0_UART_Init()
     EUSCI_A0->CTLW0 |= 1;
 
     // Set all the bits of the modulation control register to zero
-    EUSCI_A0->MCTLW |= 0;
+    EUSCI_A0->MCTLW = 0;
 
     // Hold the EUSCI_A0 module in reset mode
     // Set the clock source to SMCLK
-    EUSCI_A0->CTLW0 |= 0x00C1;
+    EUSCI_A0->CTLW0 = 0x00C1;
 
     // Set the baud rate
     // N = (Clock Frequency) / (Baud Rate) = (12,000,000 / 115,200) = 104.1667
@@ -63,6 +63,8 @@ void EUSCI_A0_UART_OutChar(char letter)
 
 void EUSCI_A0_UART_InString(char *bufPt, uint16_t max)
 {
+    if (max == 0U) return;
+
     int length = 0;
     char character = EUSCI_A0_UART_InChar();
 
@@ -77,7 +79,7 @@ void EUSCI_A0_UART_InString(char *bufPt, uint16_t max)
                 EUSCI_A0_UART_OutChar(BS);
             }
         }
-        else if (length < max)
+        else if (length < max - 1U)
         {
             *bufPt = character;
             bufPt++;
@@ -144,7 +146,7 @@ void EUSCI_A0_UART_OutSDec(int32_t n)
     if (n < 0)
     {
         EUSCI_A0_UART_OutChar('-');
-        EUSCI_A0_UART_OutUDec(-n);
+        EUSCI_A0_UART_OutUDec(0U - (uint32_t)n);
     }
     else
     {
@@ -237,10 +239,12 @@ int EUSCI_A0_UART_Close(int dev_fd)
 int EUSCI_A0_UART_Read(int dev_fd, char *buf, unsigned count)
 {
     char ch;
+    if (count == 0U) return 0;
+
     // Receive char from the serial terminal
     ch = EUSCI_A0_UART_InChar();
     // Return by reference
-    ch = *buf;
+    *buf = ch;
     // Output the received char from the serial terminal
     EUSCI_A0_UART_OutChar(ch);
     return 1;

@@ -30,6 +30,8 @@
 
 #include "../inc/Bumper_Switches.h"
 
+void (*Bumper_Task)(uint8_t bumper_switch_state);
+
 void Bumper_Switches_Init(void(*task)(uint8_t))
 {
     // Store the user-defined task function for use during interrupt handling
@@ -66,7 +68,7 @@ void Bumper_Switches_Init(void(*task)(uint8_t))
     P4->IE |= 0xED;
 
     // Set the priority level of the interrupts (IRQ 38) to 0 (section 2.4.3.20)
-    NVIC->IP[9] = (NVIC->IP[9] & 0xFF0FFFFF);
+    NVIC_SetPriority(PORT4_IRQn, 0);
 
     // Enable Interrupt 38 in NVIC (section 2.4.3.2)
     // Bit 6 corresponds to IRQ 38

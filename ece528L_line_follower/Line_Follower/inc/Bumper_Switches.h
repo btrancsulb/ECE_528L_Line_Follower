@@ -54,7 +54,7 @@
  *
  * @return None
  */
-void (*Bumper_Task)(uint8_t bumper_switch_state);
+extern void (*Bumper_Task)(uint8_t bumper_switch_state);
 
 /**
  * @brief Initialize the Bumper Switches and set up interrupt handling.

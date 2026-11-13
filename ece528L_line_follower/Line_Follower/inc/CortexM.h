@@ -82,7 +82,7 @@ void EnableInterrupts(void);  // Enable interrupts
  *
  * @brief  Saves a copy of PRIMASK and disables interrupts
  */
-void StartCritical(void);
+long StartCritical(void);
 
 
 /**

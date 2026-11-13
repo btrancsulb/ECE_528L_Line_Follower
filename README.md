@@ -48,7 +48,6 @@ Bit 0 is the rightmost QTRX channel. Bit 7 is the leftmost channel.
 
 The tables and timing diagrams below come from the flashed firmware and from placing the robot on the tape patterns used in lab. PWM numbers are Timer A0 compare values from the driver, not measured wheel speed.
 
-
 **Video of robot moving along the track**
 
 The clip shows the TI-RSLK MAX following 3/4" black tape: it drives forward on center, corrects when the array drifts, and stops when the line ends.
@@ -58,7 +57,6 @@ Open [demo.html](demo.html) in a browser to play the video inline. The file is H
 <video src="media/IMG_3958.mp4" controls playsinline width="406">
   <a href="media/IMG_3958.mp4">Download IMG_3958.mp4</a>
 </video>
-
 
 **Sensor sampling and control timing**
 
